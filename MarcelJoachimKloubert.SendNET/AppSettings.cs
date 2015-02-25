@@ -20,15 +20,26 @@ namespace MarcelJoachimKloubert.SendNET
         /// </summary>
         public AppSettings()
         {
+            this.BufferSize = 1024 * 1024;
             this.FilesToSend = new List<FileInfo>();
             this.Iterations = 1000;
+            this.MaxReceivedMessageSize = 16 * 1024 * 1024;
             this.Port = 5979;
             this.Salt = Encoding.UTF8.GetBytes("YRr260WOR6ZSQ8GC");
         }
 
         #endregion Constructors (1)
 
-        #region Properties (6)
+        #region Properties (8)
+
+        /// <summary>
+        /// Gets or sets the buffer size for write operations.
+        /// </summary>
+        public int BufferSize
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets the list of files to send.
@@ -43,6 +54,15 @@ namespace MarcelJoachimKloubert.SendNET
         /// Gets or sets the iteration count.
         /// </summary>
         public int Iterations
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the maximum size for receiving service messages.
+        /// </summary>
+        public long MaxReceivedMessageSize
         {
             get;
             set;
@@ -84,6 +104,6 @@ namespace MarcelJoachimKloubert.SendNET
             set;
         }
 
-        #endregion Properties (6)
+        #endregion Properties (8)
     }
 }

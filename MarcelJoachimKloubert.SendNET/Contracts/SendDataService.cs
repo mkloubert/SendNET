@@ -6,6 +6,7 @@ using MarcelJoachimKloubert.SendNET.Cryptography;
 using MarcelJoachimKloubert.SendNET.Helpers;
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.ServiceModel;
@@ -18,17 +19,34 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
     /// <summary>
     /// Implementation of <see cref="ISendDataService" /> interface.
     /// </summary>
-    [ServiceBehavior(IncludeExceptionDetailInFaults = true,
-                     ConcurrencyMode = ConcurrencyMode.Multiple,
+    [ServiceBehavior(AutomaticSessionShutdown = false,
+                     ConcurrencyMode = ConcurrencyMode.Single,
+                     IncludeExceptionDetailInFaults = true,
                      InstanceContextMode = InstanceContextMode.PerSession)]
     public sealed class SendDataService : ISendDataService
     {
-        #region Fields (2)
+        #region Fields (6)
 
         private ICrypter _crypter;
-        private FileInfo _targetFile;
+        private bool? _faulted = null;
+        private FileStream _targetStream;
 
-        #endregion Fields (2)
+        /// <summary>
+        /// Name of the attribute that defines if data is compressed or not.
+        /// </summary>
+        public const string XML_ATTRIB_NAME_IS_COMPRESSED = "isCompressed";
+
+        /// <summary>
+        /// XML value for <see langword="false" />.
+        /// </summary>
+        public const string XML_VALUE_FALSE = "0";
+
+        /// <summary>
+        /// XML value for <see langword="true" />.
+        /// </summary>
+        public const string XML_VALUE_TRUE = "1";
+
+        #endregion Fields (6)
 
         #region Constructors (1)
 
@@ -80,7 +98,30 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
 
         #endregion Properties (2)
 
-        #region Methods (7)
+        #region Methods (9)
+
+        /// <inheriteddoc />
+        public byte[] CloseFile()
+        {
+            try
+            {
+                using (var targetStream = this._targetStream)
+                {
+                    this._targetStream = null;
+                }
+
+                ConsoleHelper.InvokeForColor(() => Console.WriteLine("[OK]"),
+                                                                     ConsoleColor.Green);
+            }
+            catch
+            {
+                this._faulted = true;
+
+                throw;
+            }
+
+            return null;
+        }
 
         /// <inheriteddoc />
         public byte[] Connect(byte[] meta)
@@ -145,32 +186,80 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
         }
 
         /// <inheriteddoc />
-        public void Disconnect()
+        public byte[] Disconnect()
         {
             this.DispatchService();
+
+            return null;
         }
 
         private void DispatchService()
         {
+            // remove CLOSED EVENT
             try
             {
                 OperationContext.Current.InstanceContext.Closed -= this.SendDataService_InstanceContext_Closed;
             }
             catch
             {
+                // ignore here
             }
 
+            // remove FAULTED EVENT
             try
             {
                 OperationContext.Current.InstanceContext.Faulted -= this.SendDataService_InstanceContext_Faulted;
             }
             catch
             {
+                // ignore here
             }
 
-            using (var c = this._crypter)
+            // dispose TARGET STREAM
+            try
             {
-                this._crypter = null;
+                using (var targetStream = this._targetStream)
+                {
+                    this._targetStream = null;
+                }
+            }
+            catch
+            {
+                // ignore here
+            }
+
+            // try delete file, because it is faulted
+            if (this._faulted == true)
+            {
+                var targetStream = this._targetStream;
+                if (targetStream != null)
+                {
+                    try
+                    {
+                        var targetFile = new FileInfo(targetStream.Name);
+                        if (targetFile.Exists)
+                        {
+                            targetFile.Delete();
+                        }
+                    }
+                    catch
+                    {
+                        // ignore here
+                    }
+                }
+            }
+
+            // dispose CRYPTER
+            try
+            {
+                using (var c = this._crypter)
+                {
+                    this._crypter = null;
+                }
+            }
+            catch
+            {
+                // ignore here
             }
         }
 
@@ -192,69 +281,15 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
         }
 
         /// <inheriteddoc />
-        public void SendFile(Stream src)
+        public byte[] OpenFile(byte[] meta)
         {
-            var targetFile = this._targetFile;
-            if (targetFile == null)
+            if (this._targetStream != null)
             {
-                throw new FaultException("No file name defined!");
+                throw new Exception("File already open!");
             }
 
-            try
-            {
-                var remoteAddr = GetRemoteAddress();
+            FileInfo targetFile = null;
 
-                Console.WriteLine();
-                ConsoleHelper.InvokeForColor(() => Console.Write("Receiving file '{0}'{1} ... ",
-                                                                 targetFile.Name,
-                                                                 remoteAddr != null ? string.Format(" from {0}:{1}",
-                                                                                                    remoteAddr.Address, remoteAddr.Port)
-                                                                                    : string.Empty),
-                                             ConsoleColor.White);
-
-                var tmpFile = new FileInfo(Path.GetTempFileName());
-                try
-                {
-                    using (var tempStream = tmpFile.Open(FileMode.Open, FileAccess.ReadWrite))
-                    {
-                        src.CopyTo(tempStream);
-
-                        tempStream.Position = 0;
-                        using (var targetStream = targetFile.Open(FileMode.CreateNew, FileAccess.ReadWrite))
-                        {
-                            this.Crypter
-                                .Decrypt(tempStream, targetStream);
-                        }
-                    }
-                }
-                finally
-                {
-                    tmpFile.Delete();
-                }
-
-                ConsoleHelper.InvokeForColor(() => Console.WriteLine("[OK]"),
-                                             ConsoleColor.Green);
-            }
-            catch (Exception ex)
-            {
-                var innerEx = ex.GetBaseException() ?? ex;
-
-                ConsoleHelper.InvokeForColor(() => Console.WriteLine("[ERROR: '{0}' {1}]",
-                                                                     innerEx.GetType().FullName,
-                                                                     innerEx.Message),
-                                             ConsoleColor.Red);
-
-                throw;
-            }
-            finally
-            {
-                this._targetFile = null;
-            }
-        }
-
-        /// <inheriteddoc />
-        public void SetupFile(byte[] meta)
-        {
             var xml = this.DecryptXml(meta);
 
             var filename = new StringBuilder(xml.Root.Element("name").Value.Trim());
@@ -273,19 +308,111 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
                 var ext = Path.GetExtension(fullname);
 
                 ulong index = 0;
-                var targetFile = new FileInfo(Path.Combine(Settings.TargetDirectory.FullName,
-                                                           fullname));
+                targetFile = new FileInfo(Path.Combine(Settings.TargetDirectory.FullName,
+                                                       fullname));
                 while (targetFile.Exists)
                 {
                     targetFile = new FileInfo(Path.Combine(Settings.TargetDirectory.FullName,
                                                            string.Format("{0}-{1}{2}",
                                                                          baseName, index++, ext)));
                 }
-
-                this._targetFile = targetFile;
             }
+
+            try
+            {
+                this._faulted = false;
+
+                this._targetStream = targetFile.Open(FileMode.CreateNew, FileAccess.ReadWrite);
+            }
+            catch
+            {
+                this._faulted = true;
+
+                targetFile.Refresh();
+                if (targetFile.Exists)
+                {
+                    targetFile.Delete();
+                }
+
+                throw;
+            }
+
+            Console.WriteLine();
+            Console.WriteLine();
+
+            ConsoleHelper.InvokeForColor(() => Console.Write("Receiving file '{0}'... ", targetFile.Name),
+                                         ConsoleColor.White);
+
+            return null;
         }
 
-        #endregion Methods (7)
+        private static void OutputException(Exception ex)
+        {
+            if (ex == null)
+            {
+                return;
+            }
+
+            var innerEx = ex.GetBaseException() ?? ex;
+
+            ConsoleHelper.InvokeForColor(() => Console.WriteLine("[ERROR: '{0}' {1}]",
+                                                                 innerEx.GetType().FullName,
+                                                                 innerEx.Message),
+                                               ConsoleColor.Red);
+        }
+
+        /// <inheriteddoc />
+        public byte[] WriteFile(byte[] meta)
+        {
+            var targetStream = this._targetStream;
+            if (targetStream == null)
+            {
+                throw new Exception("No file!");
+            }
+
+            if (meta == null ||
+                meta.Length == 0)
+            {
+                throw new Exception("No meta defined!");
+            }
+
+            var xml = this.DecryptXml(meta);
+
+            var data = Convert.FromBase64String(xml.Root
+                                                   .Value.Trim());
+            try
+            {
+                var isCompressed = XML_VALUE_TRUE == xml.Root.Attribute(XML_ATTRIB_NAME_IS_COMPRESSED).Value;
+                if (isCompressed)
+                {
+                    using (var compressedStream = new MemoryStream(data))
+                    {
+                        using (var gzip = new GZipStream(compressedStream, CompressionMode.Decompress, true))
+                        {
+                            using (var uncompressedStream = new MemoryStream())
+                            {
+                                gzip.CopyTo(uncompressedStream);
+
+                                data = uncompressedStream.ToArray();
+                            }
+                        }
+                    }
+                }
+
+                targetStream.Write(data, 0, data.Length);
+            }
+            catch (Exception ex)
+            {
+                this._faulted = true;
+
+                OutputException(ex);
+
+                throw;
+            }
+
+            return null;
+        }
+
+        #endregion Methods (9)
     }
 }

@@ -2,9 +2,12 @@
 //
 // s. https://github.com/mkloubert/SendNET
 
+using MarcelJoachimKloubert.SendNET.Contracts;
 using MarcelJoachimKloubert.SendNET.Cryptography;
 using System;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
@@ -50,7 +53,33 @@ namespace MarcelJoachimKloubert.SendNET.Client
 
             #endregion Properties (3)
 
-            #region Methods (6)
+            #region Methods (7)
+
+            private static XElement CreateSendFileDataElement(byte[] uncompressedData)
+            {
+                var result = new XElement("data");
+
+                using (var compressedStream = new MemoryStream())
+                {
+                    using (var gzip = new GZipStream(compressedStream, CompressionMode.Compress, true))
+                    {
+                        gzip.Write(uncompressedData, 0, uncompressedData.Length);
+                    }
+
+                    var isCompressed = compressedStream.Length < uncompressedData.Length;
+
+                    // is compressed attribute
+                    result.SetAttributeValue(SendDataService.XML_ATTRIB_NAME_IS_COMPRESSED,
+                                             isCompressed ? SendDataService.XML_VALUE_TRUE
+                                                          : SendDataService.XML_VALUE_FALSE);
+
+                    // set data
+                    result.Value = Convert.ToBase64String(isCompressed ? compressedStream.ToArray()
+                                                                       : uncompressedData);
+                }
+
+                return result;
+            }
 
             public void Disconnection()
             {
@@ -98,14 +127,8 @@ namespace MarcelJoachimKloubert.SendNET.Client
                 {
                     using (var localFileStream = localFile.OpenRead())
                     {
-                        using (var cryptedFileStream = tmpFile.Open(FileMode.Open, FileAccess.ReadWrite))
-                        {
-                            this.Crypter
-                                .Encrypt(localFileStream, cryptedFileStream);
-
-                            cryptedFileStream.Position = 0;
-                            this.SendFile(cryptedFileStream, localFile.Name);
-                        }
+                        this.SendFile(localFileStream,
+                                      localFile.Name);
                     }
                 }
                 finally
@@ -137,16 +160,33 @@ namespace MarcelJoachimKloubert.SendNET.Client
                            .Add(new XElement("name", filename.Trim()));
                 }
 
-                // setup target file
-                this.Client
-                    .Channel.SetupFile(this.EnryptXml(xmlMeta));
+                this.Client.Channel
+                           .OpenFile(this.EnryptXml(xmlMeta));
 
-                // send data
-                this.Client
-                    .Channel.SendFile(stream);
+                try
+                {
+                    var buffer = new byte[this.Client.Settings
+                                                     .BufferSize];
+
+                    int bytesRead;
+                    while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        var xml = new XDocument(new XDeclaration("1.0", Encoding.UTF8.WebName, "yes"));
+                        xml.Add(CreateSendFileDataElement(buffer.Take(bytesRead)
+                                                                .ToArray()));
+
+                        this.Client
+                            .Channel.WriteFile(this.EnryptXml(xml));
+                    }
+                }
+                finally
+                {
+                    this.Client.Channel
+                               .CloseFile();
+                }
             }
 
-            #endregion Methods (6)
+            #endregion Methods (7)
         }
     }
 }

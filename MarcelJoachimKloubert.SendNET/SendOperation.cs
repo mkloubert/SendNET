@@ -54,7 +54,8 @@ namespace MarcelJoachimKloubert.SendNET
             var result = new NetTcpBinding();
             result.CloseTimeout = TimeSpan.FromSeconds(10.0f);
             result.MaxBufferPoolSize = int.MaxValue;
-            result.MaxReceivedMessageSize = int.MaxValue;
+            // result.MaxBufferSize = int.MaxValue;
+            result.MaxReceivedMessageSize = this.Settings.MaxReceivedMessageSize;
             result.OpenTimeout = result.CloseTimeout;
             result.ReaderQuotas.MaxArrayLength = int.MaxValue;
             result.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
@@ -64,11 +65,11 @@ namespace MarcelJoachimKloubert.SendNET
             result.ReceiveTimeout = TimeSpan.FromDays(1);
             result.ReliableSession.Enabled = true;
             result.ReliableSession.InactivityTimeout = result.ReceiveTimeout;
-            result.Security.Mode = SecurityMode.None;
-            result.Security.Transport.ClientCredentialType = TcpClientCredentialType.None;
-            result.Security.Transport.ProtectionLevel = ProtectionLevel.None;
+            // result.Security.Mode = SecurityMode.None;
+            // result.Security.Transport.ClientCredentialType = TcpClientCredentialType.None;
+            // result.Security.Transport.ProtectionLevel = ProtectionLevel.None;
             result.SendTimeout = result.ReceiveTimeout;
-            result.TransactionFlow = false;
+            // result.TransactionFlow = false;
             result.TransferMode = TransferMode.Buffered;
 
             return result;
@@ -153,25 +154,28 @@ namespace MarcelJoachimKloubert.SendNET
                                                                                      ep);
                 using (var conn = client.Connect())
                 {
+                    var index = 0;
                     foreach (var file in this.Settings.FilesToSend)
                     {
                         try
                         {
-                            ConsoleHelper.InvokeForColor(() => Console.Write("Sending file '{0}'... ", file.FullName),
-                                                            ConsoleColor.White);
+                            ConsoleHelper.InvokeForColor(() => Console.Write("Sending file [{0}/{1}] '{2}'... ", ++index
+                                                                                                               , this.Settings.FilesToSend.Count
+                                                                                                               , file.FullName),
+                                                         ConsoleColor.White);
                             conn.SendFile(file.FullName);
 
                             ConsoleHelper.InvokeForColor(() => Console.WriteLine("[OK]"),
-                                                            ConsoleColor.Green);
+                                                         ConsoleColor.Green);
                         }
                         catch (Exception ex)
                         {
                             var innerEx = ex.GetBaseException() ?? ex;
 
                             ConsoleHelper.InvokeForColor(() => Console.WriteLine("[ERROR: '{0}' {1}]",
-                                                                                    innerEx.GetType().FullName,
-                                                                                    innerEx.Message),
-                                                            ConsoleColor.Red);
+                                                                                 innerEx.GetType().FullName,
+                                                                                 innerEx.Message),
+                                                         ConsoleColor.Red);
                         }
                     }
                 }

@@ -2,7 +2,6 @@
 //
 // s. https://github.com/mkloubert/SendNET
 
-using System.IO;
 using System.ServiceModel;
 
 namespace MarcelJoachimKloubert.SendNET.Contracts
@@ -10,10 +9,17 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
     /// <summary>
     /// Describes a service for sending data.
     /// </summary>
-    [ServiceContract()]
+    [ServiceContract(SessionMode = SessionMode.Required)]
     public interface ISendDataService
     {
-        #region Methods (4)
+        #region Methods (5)
+
+        /// <summary>
+        /// Closes the current file.
+        /// </summary>
+        /// <returns>The result of the operation.</returns>
+        [OperationContract(IsOneWay = false)]
+        byte[] CloseFile();
 
         /// <summary>
         /// Starts connection to service.
@@ -26,24 +32,26 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
         /// <summary>
         /// Disconnects.
         /// </summary>
-        [OperationContract(IsOneWay = true)]
-        void Disconnect();
+        /// <returns>The result of the operation.</returns>
+        [OperationContract(IsOneWay = false)]
+        byte[] Disconnect();
 
         /// <summary>
-        /// Sends the file.
-        /// </summary>
-        /// <param name="src">The source data.</param>
-        /// <returns>The result.</returns>
-        [OperationContract(IsOneWay = true)]
-        void SendFile(Stream src);
-
-        /// <summary>
-        /// Sets up the file to send.
+        /// Opens a new file.
         /// </summary>
         /// <param name="meta">The meta data.</param>
+        /// <returns>The result of the operation.</returns>
         [OperationContract(IsOneWay = false)]
-        void SetupFile(byte[] meta);
+        byte[] OpenFile(byte[] meta);
 
-        #endregion Methods (4)
+        /// <summary>
+        /// Writes to a file.
+        /// </summary>
+        /// <param name="meta">The meta data.</param>
+        /// <returns>The result of the operation.</returns>
+        [OperationContract(IsOneWay = false)]
+        byte[] WriteFile(byte[] meta);
+
+        #endregion Methods (5)
     }
 }
