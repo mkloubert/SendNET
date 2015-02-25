@@ -318,6 +318,11 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
                 }
             }
 
+            if (targetFile == null)
+            {
+                throw new Exception("No filename!");
+            }
+
             try
             {
                 this._faulted = false;
@@ -340,7 +345,7 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
             Console.WriteLine();
             Console.WriteLine();
 
-            ConsoleHelper.InvokeForColor(() => Console.Write("Receiving file '{0}'... ", targetFile.Name),
+            ConsoleHelper.InvokeForColor(() => Console.Write("Receiving file '{0}'... ", fullname),
                                          ConsoleColor.White);
 
             return null;
