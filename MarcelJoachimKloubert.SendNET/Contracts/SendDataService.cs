@@ -80,7 +80,7 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
 
         #endregion Properties (2)
 
-        #region Methods (8)
+        #region Methods (7)
 
         /// <inheriteddoc />
         public byte[] Connect(byte[] meta)
@@ -120,28 +120,6 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
                     this._crypter = crypter;
                     return rsa.Encrypt(uncryptedResult.ToArray(),
                                        false);
-                }
-            }
-        }
-
-        private byte[] CryptXml(XDocument xml)
-        {
-            var crypter = this._crypter;
-            if (crypter == null)
-            {
-                return null;
-            }
-
-            using (var uncryptedXml = new MemoryStream())
-            {
-                xml.Save(uncryptedXml);
-
-                uncryptedXml.Position = 0;
-                using (var cryptedXml = new MemoryStream())
-                {
-                    crypter.Encrypt(uncryptedXml, cryptedXml);
-
-                    return cryptedXml.ToArray();
                 }
             }
         }
@@ -308,6 +286,6 @@ namespace MarcelJoachimKloubert.SendNET.Contracts
             }
         }
 
-        #endregion Methods (6)
+        #endregion Methods (7)
     }
 }
