@@ -27,104 +27,123 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using MarcelJoachimKloubert.SendNET.ComponentModel;
 using System;
-using System.Net;
+using System.Collections.Generic;
 
 namespace MarcelJoachimKloubert.SendNET
 {
     /// <summary>
-    /// Simple application settings.
+    /// A simple <see cref="IComparer{T}" /> and <see cref="IEqualityComparer{T}" /> object.
     /// </summary>
-    public class AppSettings : ApplicationObject, IAppSettings
+    /// <typeparam name="T">Object / value type.</typeparam>
+    public class ObjectComparer<T> : IComparer<T>, IEqualityComparer<T>
     {
-        #region Fields (1)
+        #region Fields (4)
 
-        /// <summary>
-        /// Stores the default port.
-        /// </summary>
-        public const int DEFAULT_PORT = 5979;
+        private readonly Func<T, T, int> _COMPARE;
+        private readonly Func<T, T, bool> _EQUALS;
+        private readonly Func<T, int> _GET_HASHCODE;
+        private static ObjectComparer<T> _default;
 
-        #endregion Fields (1)
+        #endregion Fields (4)
 
         #region Constructors (1)
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AppSettings" /> class.
+        /// Initializes a new instance of the <see cref="ObjectComparer{T}" /> class.
         /// </summary>
-        /// <param name="appContext">The value for the <see cref="ApplicationObject.Application" /> property.</param>
-        /// <param name="sync">The value for the <see cref="NotifiableBase.SyncRoot" /> property.</param>
-        public AppSettings(IAppContext appContext, object sync = null)
-            : base(appContext: appContext,
-                    sync: sync)
+        /// <param name="equalsFunc">The logic for the <see cref="ObjectComparer{T}.Equals(T, T)" /> method.</param>
+        /// <param name="compareFunc">The logic for the <see cref="ObjectComparer{T}.Compare(T, T)" /> method.</param>
+        /// <param name="getHashCodeFunc">The logic for the <see cref="ObjectComparer{T}.GetHashCode(T)" /> method.</param>
+        public ObjectComparer(Func<T, T, bool> equalsFunc = null,
+                              Func<T, T, int> compareFunc = null,
+                              Func<T, int> getHashCodeFunc = null)
         {
-            this.IP = null;
+            this._EQUALS = equalsFunc ?? this.DefaultEquals;
+            this._COMPARE = compareFunc ?? this.DefaultCompare;
+            this._GET_HASHCODE = getHashCodeFunc ?? this.DefaultGetHashCode;
         }
 
         #endregion Constructors (1)
 
-        #region Properties (4)
+        #region Properties
 
         /// <summary>
-        /// <see cref="IAppSettings.Address" />
+        /// Gets the default instance of that class.
         /// </summary>
-        public IPAddress Address
+        public static ObjectComparer<T> Default
         {
-            get { return this.Get(() => this.Address); }
-
-            set { this.Set(() => this.Address, value); }
-        }
-
-        /// <summary>
-        /// <see cref="IAppSettings.ConnectionValidator" />
-        /// </summary>
-        public ConnectionValidator ConnectionValidator
-        {
-            get { return this.Get(() => this.ConnectionValidator); }
-
-            set { this.Set(() => this.ConnectionValidator, value); }
-        }
-
-        /// <summary>
-        /// Sets the values for <see cref="AppSettings.Address" /> and <see cref="AppSettings.Port" /> properties.
-        /// </summary>
-        public IPEndPoint IP
-        {
-            set
+            get
             {
-                if (value != null)
+                if (_default == null)
                 {
-                    this.Address = value.Address;
-                    this.Port = value.Port;
+                    _default = new ObjectComparer<T>();
                 }
-                else
-                {
-                    this.Address = null;
-                    this.Port = DEFAULT_PORT;
-                }
+
+                return _default;
             }
         }
 
+        #endregion Properties
+
+        #region Methods (6)
+
         /// <summary>
-        /// <see cref="IAppSettings.Port" />
+        /// The default logic for the <see cref="ObjectComparer{T}.Compare(T, T)" /> method.
         /// </summary>
-        public int Port
+        /// <param name="x">The left value.</param>
+        /// <param name="y">The right value.</param>
+        /// <returns>The sort value.</returns>
+        protected virtual int DefaultCompare(T x, T y)
         {
-            get { return this.Get(() => this.Port); }
-
-            set
-            {
-                if ((value < IPEndPoint.MinPort) || (value > IPEndPoint.MaxPort))
-                {
-                    throw new ArgumentOutOfRangeException("value", value,
-                                                          string.Format("Allowed values are between {0} and {1}!",
-                                                                        IPEndPoint.MinPort, IPEndPoint.MaxPort));
-                }
-
-                this.Set(() => this.Port, value);
-            }
+            return Comparer<T>.Default.Compare(x, y);
         }
 
-        #endregion Properties (4)
+        /// <summary>
+        /// The default logic for the <see cref="ObjectComparer{T}.Equals(T, T)" /> method.
+        /// </summary>
+        /// <param name="x">The left value.</param>
+        /// <param name="y">The right value.</param>
+        /// <returns>Are equal or not.</returns>
+        protected virtual bool DefaultEquals(T x, T y)
+        {
+            return EqualityComparer<T>.Default.Equals(x, y);
+        }
+
+        /// <summary>
+        /// The default logic for the <see cref="ObjectComparer{T}.GetHashCode(T)" /> method.
+        /// </summary>
+        /// <param name="obj">The obj.</param>
+        /// <returns>The hash code.</returns>
+        protected virtual int DefaultGetHashCode(T obj)
+        {
+            return EqualityComparer<T>.Default.GetHashCode(obj);
+        }
+
+        /// <summary>
+        /// <see cref="IComparer{T}.Compare(T, T)" />
+        /// </summary>
+        public int Compare(T x, T y)
+        {
+            return this._COMPARE(x, y);
+        }
+
+        /// <summary>
+        /// <see cref="IEqualityComparer{T}.Equals(T, T)" />
+        /// </summary>
+        public bool Equals(T x, T y)
+        {
+            return this._EQUALS(x, y);
+        }
+
+        /// <summary>
+        /// <see cref="IEqualityComparer{T}.GetHashCode(T)" />
+        /// </summary>
+        public int GetHashCode(T obj)
+        {
+            return this._GET_HASHCODE(obj);
+        }
+
+        #endregion Methods (6)
     }
 }

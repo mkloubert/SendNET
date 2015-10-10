@@ -28,37 +28,58 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.ComponentModel
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Arguments for an error event.
     /// </summary>
-    public interface ICrypter
+    public class ErrorEventArgs : EventArgs
     {
-        #region Method (3)
+        #region Fields (1)
+
+        private ApplicationException _exception;
+
+        #endregion Fields (1)
+
+        #region Constructors (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="ErrorEventArgs" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="exception">The underlying exception (if defined).</param>
+        public ErrorEventArgs(Exception exception = null)
+        {
+            if (exception != null)
+            {
+                this._exception = exception as ApplicationException;
+                if (this._exception == null)
+                {
+                    Exception baseException = null;
+                    if (exception != null)
+                    {
+                        baseException = exception.GetBaseException();
+                    }
+
+                    this._exception = new ApplicationException(message: baseException != null ? baseException.Message : null,
+                                                               innerException: baseException);
+                }
+            }
+        }
+
+        #endregion Constructors (1)
+
+        #region Methods (1)
 
         /// <summary>
-        /// Encrypts data.
+        /// Returns the underlying exception.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        /// <returns>The exception or <see langword="null" /> if not defined.</returns>
+        public ApplicationException GetException()
+        {
+            return this._exception;
+        }
 
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
-
-        #endregion Method (3)
+        #endregion Methods (1)
     }
 }

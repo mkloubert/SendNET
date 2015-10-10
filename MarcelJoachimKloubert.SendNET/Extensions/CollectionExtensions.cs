@@ -29,36 +29,78 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Extensions
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Collection / sequence based extension methods.
     /// </summary>
-    public interface ICrypter
+    static partial class SendNETExtensionMethods
     {
-        #region Method (3)
+        #region Methods (2)
 
         /// <summary>
-        /// Decrypts data.
+        /// Adds or sets a dictionary value.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <typeparam name="TKey">Type of the keys.</typeparam>
+        /// <typeparam name="TValue">Type of the value.</typeparam>
+        /// <param name="dict">The dictionary.</param>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// <paramref name="value" /> was added to <paramref name="dict" /> (<see langword="true" />)
+        /// or set (<see langword="false" />).
+        /// </returns>
+        public static bool AddOrSet<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TValue value)
+        {
+            if (dict == null)
+            {
+                throw new ArgumentNullException("dict");
+            }
+
+            if (dict.ContainsKey(key))
+            {
+                dict[key] = value;
+                return false;
+            }
+
+            dict.Add(key, value);
+            return true;
+        }
 
         /// <summary>
-        /// Encrypts data.
+        /// Returns a sequence as array.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        /// <typeparam name="T">Type of the items.</typeparam>
+        /// <param name="seq">The sequence.</param>
+        /// <returns>
+        /// <paramref name="seq" /> as array.
+        /// If <paramref name="seq" /> is already an array, it is simply casted.
+        /// If <paramref name="seq" /> is <see langword="null" />, a <see langword="null" /> reference will be returned.
+        /// </returns>
+        public static T[] AsArray<T>(this IEnumerable<T> seq)
+        {
+            if (seq is T[])
+            {
+                return (T[])seq;
+            }
 
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+            if (seq == null)
+            {
+                return null;
+            }
 
-        #endregion Method (3)
+            if (seq is List<T>)
+            {
+                // ToArray() of list object
+                return ((List<T>)seq).ToArray();
+            }
+
+            // LINQ style
+            return seq.ToArray();
+        }
+
+        #endregion Methods (2)
     }
 }

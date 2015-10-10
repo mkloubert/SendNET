@@ -27,38 +27,37 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
+using System.Net;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Describes an object that stores application settings.
     /// </summary>
-    public interface ICrypter
+    public interface IAppSettings
     {
-        #region Method (3)
+        #region Properties (4)
 
         /// <summary>
-        /// Decrypts data.
+        /// Gets the local / remote IP address.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        IPAddress Address { get; }
 
         /// <summary>
-        /// Encrypts data.
+        /// Gets the underlying Application.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        IAppContext Application { get; }
 
         /// <summary>
-        /// Returns the parameters.
+        /// Gets the connection validator.
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        ConnectionValidator ConnectionValidator { get; }
 
-        #endregion Method (3)
+        /// <summary>
+        /// Gets the local / remote port.
+        /// </summary>
+        int Port { get; }
+
+        #endregion Properties (4)
     }
 }

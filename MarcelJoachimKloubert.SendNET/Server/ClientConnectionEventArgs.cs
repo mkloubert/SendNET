@@ -28,37 +28,40 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Server
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Arguments for an event with a remote client.
     /// </summary>
-    public interface ICrypter
+    public class ClientConnectionEventArgs : ConnectionEventArgs
     {
-        #region Method (3)
+        #region Constructors (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="ClientConnectionEventArgs" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="conn">The value for the <see cref="ClientConnectionEventArgs.Connection" /> property.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="conn" /> is <see langword="null" />.
+        /// </exception>
+        public ClientConnectionEventArgs(IClientConnection conn)
+            : base(conn: conn)
+        {
+        }
+
+        #endregion Constructors (1)
+
+        #region Properties (1)
 
         /// <summary>
-        /// Encrypts data.
+        /// <see cref="ConnectionEventArgs.Connection" />
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        public new IClientConnection Connection
+        {
+            get { return (IClientConnection)base.Connection; }
+        }
 
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
-
-        #endregion Method (3)
+        #endregion Properties (1)
     }
 }

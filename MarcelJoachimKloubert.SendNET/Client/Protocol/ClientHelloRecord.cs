@@ -27,38 +27,53 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.SendNET.ComponentModel;
+using MarcelJoachimKloubert.SendNET.Cryptography;
+using MarcelJoachimKloubert.SendNET.Protocol;
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Client.Protocol
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// A hello from client.
     /// </summary>
-    public interface ICrypter
+    [Record(RecordType.ClientHello)]
+    public class ClientHelloRecord : RecordBase
     {
-        #region Method (3)
+        #region Constructors (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="ClientHelloRecord" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="crypter">The value for the <see cref="UnknownRecord.Crypter" /> property.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="crypter" /> is <see langword="null" />.
+        /// </exception>
+        public ClientHelloRecord(ICrypter crypter)
+            : base(knownType: RecordType.ClientHello,
+                   crypter: crypter)
+        {
+        }
+
+        #endregion Constructors (1)
+
+        #region Methods (2)
 
         /// <summary>
-        /// Encrypts data.
+        /// <see cref="RecordBase.OnParseContent(byte[], ref bool)" />
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        protected override void OnParseContent(byte[] newContent, ref bool success)
+        {
+            success = true;
+        }
 
         /// <summary>
-        /// Returns the parameters.
+        /// <see cref="RecordBase.UpdateContent(IReceiveValueFromArgs)" />
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        protected override void UpdateContent(IReceiveValueFromArgs args)
+        {
+        }
 
-        #endregion Method (3)
+        #endregion Methods (2)
     }
 }

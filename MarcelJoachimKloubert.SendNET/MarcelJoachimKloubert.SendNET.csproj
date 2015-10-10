@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{62DA474B-23FA-4337-8E0E-C6821336E4BD}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MarcelJoachimKloubert.SendNET</RootNamespace>
     <AssemblyName>MarcelJoachimKloubert.SendNET</AssemblyName>
@@ -21,6 +21,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Debug\MarcelJoachimKloubert.SendNET.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,33 +33,67 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>MarcelJoachimKloubert.SendNET.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AppSettings.cs" />
-    <Compile Include="Client\SendDataClient.cs" />
-    <Compile Include="Client\ISendDataClientConnection.cs" />
-    <Compile Include="Client\SendDataClient.SendDataClientConnection.cs">
-      <DependentUpon>SendDataClient.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Contracts\ISendDataService.cs" />
-    <Compile Include="Contracts\SendDataService.cs" />
+    <Compile Include="AppContext.cs" />
+    <Compile Include="ApplicationException.cs" />
+    <Compile Include="Client\ClientConnection.cs" />
+    <Compile Include="Client\Protocol\ClientHelloRecord.cs" />
+    <Compile Include="Client\Protocol\ClientRecordHandlerBase.cs" />
+    <Compile Include="ComponentModel\ErrorEventArgs.cs" />
+    <Compile Include="ComponentModel\IReceiveValueFromArgs.cs" />
+    <Compile Include="ComponentModel\NotifiableBase.cs" />
+    <Compile Include="ComponentModel\NotifiableBase.ReceiveValueFromArgs.cs" />
+    <Compile Include="ComponentModel\ReceiveNotificationFromAttribute.cs" />
+    <Compile Include="ComponentModel\ReceiveValueFromAttribute.cs" />
+    <Compile Include="ConnectionEventArgs.cs" />
+    <Compile Include="ConnectionValidator.cs" />
     <Compile Include="Cryptography\ICrypter.cs" />
     <Compile Include="Cryptography\RijndaelCrypter.cs" />
-    <Compile Include="Helpers\ConsoleHelper.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="DisposableBase.cs" />
+    <Compile Include="Extensions\NetExtensionMethods.cs" />
+    <Compile Include="Extensions\BinaryExtensionMethods.cs" />
+    <Compile Include="Extensions\CollectionExtensions.cs" />
+    <Compile Include="Extensions\ValueExtensions.cs" />
+    <Compile Include="Extensions\_Extensions.cs" />
+    <Compile Include="IAppContext.cs" />
+    <Compile Include="IAppSettings.cs" />
+    <Compile Include="Protocol\ContentCompression.cs" />
+    <Compile Include="Protocol\CryptAlgorithm.cs" />
+    <Compile Include="Protocol\IRecord.cs" />
+    <Compile Include="Protocol\RecordAttribute.cs" />
+    <Compile Include="Protocol\RecordBase.cs" />
+    <Compile Include="Protocol\RecordHandlerBase.cs" />
+    <Compile Include="Protocol\RecordType.cs" />
+    <Compile Include="Protocol\UnknownRecord.cs" />
+    <Compile Include="Server\ClientConnectionEventArgs.cs" />
+    <Compile Include="Server\IClientConnection.cs" />
+    <Compile Include="InvalidConnectionException.cs" />
+    <Compile Include="IRemoteConnection.cs" />
+    <Compile Include="ObjectComparer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SendOperation.cs" />
-    <Compile Include="SendOperationType.cs" />
+    <Compile Include="ApplicationObject.cs" />
+    <Compile Include="RemoteConnection.cs" />
+    <Compile Include="Server\Protocol\ServerRecordHandlerBase.cs" />
+    <Compile Include="Server\ServerHost.ConnectionWithClient.cs">
+      <DependentUpon>ServerHost.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Server\ServerHost.cs" />
+    <Compile Include="AppSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\LICENSE">
@@ -65,8 +101,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="files\dummy.txt" />
+    <None Include="MarcelJoachimKloubert.SendNET.snk" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

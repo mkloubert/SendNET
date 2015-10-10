@@ -27,38 +27,98 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.SendNET.ComponentModel;
+using MarcelJoachimKloubert.SendNET.Cryptography;
+using MarcelJoachimKloubert.SendNET.Extensions;
 using System;
 using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Protocol
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// A known record.
     /// </summary>
-    public interface ICrypter
+    public abstract class RecordBase : UnknownRecord
     {
-        #region Method (3)
+        #region Constructors (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="UnknownRecord" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="knownType">The value for the <see cref="RecordBase.KnownType" /> property.</param>
+        /// <param name="crypter">The value for the <see cref="UnknownRecord.Crypter" /> property.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="crypter" /> is <see langword="null" />.
+        /// </exception>
+        protected RecordBase(RecordType knownType, ICrypter crypter)
+            : base(crypter: crypter)
+        {
+            this.KnownType = knownType;
+        }
+
+        #endregion Constructors (1)
+
+        #region Properties (3)
 
         /// <summary>
-        /// Encrypts data.
+        /// <see cref="UnknownRecord.Content" />
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        public sealed override byte[] Content
+        {
+            get { return base.Content; }
+
+            set { throw new NotSupportedException(); }
+        }
 
         /// <summary>
-        /// Returns the parameters.
+        /// Gets the known record type.
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        public RecordType KnownType
+        {
+            get { return this.Get(() => this.KnownType); }
 
-        #endregion Method (3)
+            private set { this.Set(() => this.KnownType, value); }
+        }
+
+        /// <summary>
+        /// <see cref="UnknownRecord.Type" />
+        /// </summary>
+        [ReceiveNotificationFrom("KnownType")]
+        public sealed override ushort Type
+        {
+            get { return (ushort)this.Get(() => this.KnownType); }
+
+            set { throw new NotSupportedException(); }
+        }
+
+        #endregion Properties (3)
+
+        #region Methods (3)
+
+        /// <summary>
+        /// <see cref="UnknownRecord.OnParseContent(byte[], ref bool)" />
+        /// </summary>
+        protected override void OnParseContent(byte[] newContent, ref bool success)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Sets the value for the <see cref="RecordBase.Content" /> property.
+        /// </summary>
+        /// <param name="newData">The new data.</param>
+        /// <exception cref="ArgumentOutOfRangeException">The new data is too big.</exception>
+        protected void SetContentProperty(IEnumerable<byte> newData)
+        {
+            base.Content = newData.AsArray();
+        }
+
+        /// <summary>
+        /// Updates the <see cref="RecordBase.Content" /> property.
+        /// </summary>
+        /// <param name="args">The arguments from the changed property.</param>
+        protected abstract void UpdateContent(IReceiveValueFromArgs args);
+
+        #endregion Methods (3)
     }
 }

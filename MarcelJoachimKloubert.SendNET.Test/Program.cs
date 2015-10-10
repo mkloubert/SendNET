@@ -27,38 +27,89 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.SendNET.Client;
+using MarcelJoachimKloubert.SendNET.Server;
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Test
 {
-    /// <summary>
-    /// Describes an object that encrypt / decrypts data.
-    /// </summary>
-    public interface ICrypter
+    internal static class Program
     {
-        #region Method (3)
+        #region Methods (2)
 
-        /// <summary>
-        /// Decrypts data.
-        /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        private static void Main(string[] args)
+        {
+            try
+            {
+                var serverApp = new AppContext();
+                {
+                    var serverSettings = new AppSettings(serverApp);
 
-        /// <summary>
-        /// Encrypts data.
-        /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+                    serverApp.Settings = serverSettings;
+                }
 
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+                var clientApp = new AppContext();
+                {
+                    var clientSettings = new AppSettings(clientApp);
 
-        #endregion Method (3)
+                    clientApp.Settings = clientSettings;
+                }
+
+                using (var host = new ServerHost(serverApp))
+                {
+                    host.Disposing += (sender, e) =>
+                        {
+                            Console.Write("Disposing... ");
+                        };
+                    host.Disposed += (sender, e) =>
+                        {
+                            Console.WriteLine("[OK]");
+                        };
+
+                    host.Starting += (sender, e) =>
+                        {
+                            Console.Write("Starting... ");
+                        };
+                    host.Started += (sender, e) =>
+                        {
+                            Console.WriteLine("[OK]");
+                        };
+
+                    host.Stopping += (sender, e) =>
+                        {
+                            Console.Write("Stopping... ");
+                        };
+                    host.Stopped += (sender, e) =>
+                        {
+                            Console.WriteLine("[OK]");
+                        };
+
+                    host.Start();
+
+                    var client = ClientConnection.Open(clientApp.Settings);
+                    client.SayHello();
+
+                    WaitForEnter();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[FATAL ERROR!!!]: {0}",
+                                  ex.GetBaseException());
+            }
+
+            WaitForEnter();
+        }
+
+        private static void WaitForEnter()
+        {
+            Console.WriteLine();
+            Console.WriteLine();
+
+            Console.WriteLine("===== ENTER =====");
+            Console.ReadLine();
+        }
+
+        #endregion Methods (2)
     }
 }

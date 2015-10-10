@@ -28,37 +28,71 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.ComponentModel
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Arguments for a method that receives values via <see cref="ReceiveValueFromAttribute" />.
     /// </summary>
-    public interface ICrypter
+    public interface IReceiveValueFromArgs
     {
-        #region Method (3)
+        #region Data members (6)
 
         /// <summary>
-        /// Decrypts data.
+        /// The new value.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        object NewValue { get; }
 
         /// <summary>
-        /// Encrypts data.
+        /// The old value.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        object OldValue { get; }
 
         /// <summary>
-        /// Returns the parameters.
+        /// The instance of the sending object.
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        object Sender { get; }
 
-        #endregion Method (3)
+        /// <summary>
+        /// The name of the sending element of <see cref="IReceiveValueFromArgs.Sender" /> (a property, e.g.).
+        /// </summary>
+        string SenderName { get; }
+
+        /// <summary>
+        /// The ID of the sender type (represents the value from 'System.Reflection.MemberTypes' enum).
+        /// </summary>
+        int SenderType { get; }
+
+        /// <summary>
+        /// The target type.
+        /// </summary>
+        Type TargetType { get; }
+
+        #endregion Data members (6)
+
+        #region Methods (3)
+
+        /// <summary>
+        /// Gets the value of <see cref="IReceiveValueFromArgs.NewValue" /> property strong typed.
+        /// </summary>
+        /// <typeparam name="T">The target type.</typeparam>
+        /// <returns>The casted value of <see cref="IReceiveValueFromArgs.NewValue" /> property.</returns>
+        T GetNewValue<T>();
+
+        /// <summary>
+        /// Gets the value of <see cref="IReceiveValueFromArgs.OldValue" /> property strong typed.
+        /// </summary>
+        /// <typeparam name="T">The target type.</typeparam>
+        /// <returns>The casted value of <see cref="IReceiveValueFromArgs.OldValue" /> property.</returns>
+        T GetOldValue<T>();
+
+        /// <summary>
+        /// Gets the value of <see cref="IReceiveValueFromArgs.Sender" /> property strong typed.
+        /// </summary>
+        /// <typeparam name="T">The target type.</typeparam>
+        /// <returns>The casted value of <see cref="IReceiveValueFromArgs.Sender" /> property.</returns>
+        T GetSender<T>();
+
+        #endregion Methods (3)
     }
 }

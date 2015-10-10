@@ -29,36 +29,91 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Extensions
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Extension methods for bit / byte operations.
     /// </summary>
-    public interface ICrypter
+    static partial class SendNETExtensionMethods
     {
-        #region Method (3)
+        #region Methods (5)
 
         /// <summary>
-        /// Decrypts data.
+        /// Returns the binary data for a <see cref="ushort" /> value.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="value">The input value.</param>
+        /// <returns>The output value.</returns>
+        public static byte[] GetBytes(this ushort value)
+        {
+            return AsArray(UpdateByteOrder(BitConverter.GetBytes(value)));
+        }
 
         /// <summary>
-        /// Encrypts data.
+        /// Returns the binary data for a <see cref="uint" /> value.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        /// <param name="value">The input value.</param>
+        /// <returns>The output value.</returns>
+        public static byte[] GetBytes(this uint value)
+        {
+            return AsArray(UpdateByteOrder(BitConverter.GetBytes(value)));
+        }
 
         /// <summary>
-        /// Returns the parameters.
+        /// Converts binary data to a <see cref="ushort" /> value.
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        /// <param name="bytes">The input data.</param>
+        /// <returns>The output value.</returns>
+        public static ushort? ToUInt16(this IEnumerable<byte> bytes)
+        {
+            bytes = UpdateByteOrder(bytes);
 
-        #endregion Method (3)
+            if (bytes != null)
+            {
+                return BitConverter.ToUInt16(AsArray(bytes.Take(2)), 0);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Converts binary data to a <see cref="uint" /> value.
+        /// </summary>
+        /// <param name="bytes">The input data.</param>
+        /// <returns>The output value.</returns>
+        public static uint? ToUInt32(this IEnumerable<byte> bytes)
+        {
+            bytes = UpdateByteOrder(bytes);
+
+            if (bytes != null)
+            {
+                return BitConverter.ToUInt32(AsArray(bytes.Take(4)), 0);
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Updates the order binary data depending on the system settings in <see cref="BitConverter.IsLittleEndian" />.
+        /// </summary>
+        /// <param name="bytes">The input data.</param>
+        /// <returns>The output data.</returns>
+        public static IEnumerable<byte> UpdateByteOrder(this IEnumerable<byte> bytes)
+        {
+            if (bytes == null)
+            {
+                return null;
+            }
+
+            if (BitConverter.IsLittleEndian)
+            {
+                bytes = bytes.Reverse();
+            }
+
+            return bytes;
+        }
+
+        #endregion Methods (5)
     }
 }

@@ -29,102 +29,138 @@
 
 using MarcelJoachimKloubert.SendNET.ComponentModel;
 using System;
-using System.Net;
 
 namespace MarcelJoachimKloubert.SendNET
 {
     /// <summary>
-    /// Simple application settings.
+    /// A basic disposable object.
     /// </summary>
-    public class AppSettings : ApplicationObject, IAppSettings
+    public abstract class DisposableBase : ApplicationObject, IDisposable
     {
-        #region Fields (1)
+        #region Constructors (2)
 
         /// <summary>
-        /// Stores the default port.
-        /// </summary>
-        public const int DEFAULT_PORT = 5979;
-
-        #endregion Fields (1)
-
-        #region Constructors (1)
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AppSettings" /> class.
+        /// Initializes a new instance of the <see cref="DisposableBase" /> class.
         /// </summary>
         /// <param name="appContext">The value for the <see cref="ApplicationObject.Application" /> property.</param>
         /// <param name="sync">The value for the <see cref="NotifiableBase.SyncRoot" /> property.</param>
-        public AppSettings(IAppContext appContext, object sync = null)
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="appContext" /> is <see langword="null" />.
+        /// </exception>
+        protected DisposableBase(IAppContext appContext, object sync = null)
             : base(appContext: appContext,
-                    sync: sync)
+                   sync: sync)
         {
-            this.IP = null;
-        }
-
-        #endregion Constructors (1)
-
-        #region Properties (4)
-
-        /// <summary>
-        /// <see cref="IAppSettings.Address" />
-        /// </summary>
-        public IPAddress Address
-        {
-            get { return this.Get(() => this.Address); }
-
-            set { this.Set(() => this.Address, value); }
         }
 
         /// <summary>
-        /// <see cref="IAppSettings.ConnectionValidator" />
+        /// Frees the <see cref="DisposableBase" /> object.
         /// </summary>
-        public ConnectionValidator ConnectionValidator
+        ~DisposableBase()
         {
-            get { return this.Get(() => this.ConnectionValidator); }
-
-            set { this.Set(() => this.ConnectionValidator, value); }
+            this.Dispose(false);
         }
 
+        #endregion Constructors (2)
+
+        #region Events (2)
+
         /// <summary>
-        /// Sets the values for <see cref="AppSettings.Address" /> and <see cref="AppSettings.Port" /> properties.
+        /// Is raised when object begins disposing itself.
         /// </summary>
-        public IPEndPoint IP
+        public event EventHandler Disposing;
+
+        /// <summary>
+        /// Is raised when the object has been disposed.
+        /// </summary>
+        public event EventHandler Disposed;
+
+        #endregion Events (2)
+
+        #region Properties (1)
+
+        /// <summary>
+        /// Gets if the object has been disposed (<see langword="true" />) or not (<see langword="false" />).
+        /// </summary>
+        public bool IsDisposed
         {
-            set
+            get { return this.Get(() => this.IsDisposed); }
+
+            private set { this.Set(() => this.IsDisposed, value); }
+        }
+
+        #endregion Properties (1)
+
+        #region Methods (4)
+
+        /// <summary>
+        /// <see cref="IDisposable.Dispose()" />
+        /// </summary>
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            lock (this._SYNC)
             {
-                if (value != null)
+                if (disposing && this.IsDisposed)
                 {
-                    this.Address = value.Address;
-                    this.Port = value.Port;
+                    return;
                 }
-                else
+
+                try
                 {
-                    this.Address = null;
-                    this.Port = DEFAULT_PORT;
+                    if (disposing)
+                    {
+                        this.RaiseEventHandler(this.Disposing);
+                    }
+
+                    var isDisposed = disposing ? true : this.IsDisposed;
+                    this.OnDispose(disposing, ref isDisposed);
+
+                    this.IsDisposed = isDisposed;
+                    if (this.IsDisposed)
+                    {
+                        this.RaiseEventHandler(this.Disposed);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (disposing)
+                    {
+                        throw ex;
+                    }
                 }
             }
         }
 
         /// <summary>
-        /// <see cref="IAppSettings.Port" />
+        /// The logic for the <see cref="DisposableBase.Dispose()" /> method or the destructor.
         /// </summary>
-        public int Port
+        /// <param name="disposing">
+        /// <see cref="DisposableBase.Dispose()" /> method was invoked (<see langword="true" />)
+        /// or the destructor (<see langword="false" />).
+        /// </param>
+        /// <param name="isDisposed">
+        /// The new value for <see cref="DisposableBase.IsDisposed" /> property.
+        /// </param>
+        protected abstract void OnDispose(bool disposing, ref bool isDisposed);
+
+        /// <summary>
+        /// Throws an exception if that object has been disposed.
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">Object has been disposed.</exception>
+        protected void ThrowIfDisposed()
         {
-            get { return this.Get(() => this.Port); }
-
-            set
+            if (this.IsDisposed)
             {
-                if ((value < IPEndPoint.MinPort) || (value > IPEndPoint.MaxPort))
-                {
-                    throw new ArgumentOutOfRangeException("value", value,
-                                                          string.Format("Allowed values are between {0} and {1}!",
-                                                                        IPEndPoint.MinPort, IPEndPoint.MaxPort));
-                }
-
-                this.Set(() => this.Port, value);
+                throw new ObjectDisposedException(this.GetType().FullName);
             }
         }
 
-        #endregion Properties (4)
+        #endregion Methods (4)
     }
 }

@@ -28,37 +28,58 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.ComponentModel
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Defines from where a property, field or method should receive (new) values.
     /// </summary>
-    public interface ICrypter
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Field,
+                    AllowMultiple = true,
+                    Inherited = false)]
+    public sealed class ReceiveValueFromAttribute : Attribute
     {
-        #region Method (3)
+        #region Constructors (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="ReceiveValueFromAttribute" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="senderName">
+        /// The value for the <see cref="ReceiveValueFromAttribute.SenderName" /> property.
+        /// </param>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="senderName" /> is invalid.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="senderName" /> is <see langword="null" />.
+        /// </exception>
+        public ReceiveValueFromAttribute(string senderName)
+        {
+            if (senderName == null)
+            {
+                throw new ArgumentNullException("senderName");
+            }
+
+            this.SenderName = senderName.Trim();
+            if (this.SenderName == string.Empty)
+            {
+                throw new ArgumentException("senderName");
+            }
+        }
+
+        #endregion Constructors
+
+        #region Properties (1)
 
         /// <summary>
-        /// Encrypts data.
+        /// Gets the name of sender / sending member of the notification.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        public string SenderName
+        {
+            get;
+            private set;
+        }
 
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
-
-        #endregion Method (3)
+        #endregion Properties
     }
 }

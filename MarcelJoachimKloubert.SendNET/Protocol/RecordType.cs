@@ -27,38 +27,21 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
-
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Protocol
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// List of known record types.
     /// </summary>
-    public interface ICrypter
+    public enum RecordType : ushort
     {
-        #region Method (3)
+        /// <summary>
+        /// Unknown
+        /// </summary>
+        UNKNOWN = 0,
 
         /// <summary>
-        /// Decrypts data.
+        /// Hello from client
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
-
-        /// <summary>
-        /// Encrypts data.
-        /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
-
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
-
-        #endregion Method (3)
+        ClientHello = 1,
     }
 }

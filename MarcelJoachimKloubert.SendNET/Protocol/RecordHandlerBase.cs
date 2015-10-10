@@ -27,38 +27,83 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.SendNET.ComponentModel;
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Protocol
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// A basic record handler.
     /// </summary>
-    public interface ICrypter
+    /// <typeparam name="TRecord">Type of the underlying record.</typeparam>
+    public abstract class RecordHandlerBase<TRecord> : DisposableBase
+        where TRecord : IRecord
     {
-        #region Method (3)
+        #region Constructors (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="RecordHandlerBase{TRecord}" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="appContext">The value for the <see cref="ApplicationObject.Application" /> property.</param>
+        /// <param name="record">The value for the <see cref="RecordHandlerBase{TRecord}.Record" /> property.</param>
+        /// <param name="sync">The value for the <see cref="NotifiableBase.SyncRoot" /> property.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="appContext" /> and/or <paramref name="record" /> is <see langword="null" />.
+        /// </exception>
+        protected RecordHandlerBase(IAppContext appContext, TRecord record, object sync = null)
+            : base(appContext: appContext,
+                   sync: sync)
+        {
+            if (record == null)
+            {
+                throw new ArgumentNullException("record");
+            }
+
+            this.Record = record;
+        }
+
+        #endregion Constructors (1)
+
+        #region Properties (1)
 
         /// <summary>
-        /// Encrypts data.
+        /// Gets the underlying record.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        public TRecord Record
+        {
+            get;
+            private set;
+        }
+
+        #endregion Properties (1)
+
+        #region Methods (2)
 
         /// <summary>
-        /// Returns the parameters.
+        /// Handles the underlying record.
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        public void HandleNext()
+        {
+            lock (this._SYNC)
+            {
+                this.ThrowIfDisposed();
 
-        #endregion Method (3)
+                try
+                {
+                    this.OnHandleNext();
+                }
+                catch (Exception ex)
+                {
+                    this.RaiseError(ex, true);
+                }
+            }
+        }
+
+        /// <summary>
+        /// The logic for the <see cref="RecordHandlerBase{TRecord}.HandleNext()" /> method.
+        /// </summary>
+        protected abstract void OnHandleNext();
+
+        #endregion Methods (2)
     }
 }

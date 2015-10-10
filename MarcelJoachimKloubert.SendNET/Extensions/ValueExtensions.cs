@@ -30,35 +30,100 @@
 using System;
 using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Extensions
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Value / object based extension methods.
     /// </summary>
-    public interface ICrypter
+    static partial class SendNETExtensionMethods
     {
-        #region Method (3)
+        #region Methods (5)
 
         /// <summary>
-        /// Decrypts data.
+        /// Checks if a nullable <see cref="bool" /> has the value <see langword="false" />.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="value">The value to check.</param>
+        /// <returns>
+        /// <paramref name="value" /> is <see langword="false" /> or not.
+        /// </returns>
+        public static bool IsFalse(this bool? value)
+        {
+            return false == value;
+        }
 
         /// <summary>
-        /// Encrypts data.
+        /// Returns an object as string.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        /// <param name="obj">The input value.</param>
+        /// <param name="dbNullAsNull">
+        /// Returns <see cref="DBNull" /> as <see langword="null" /> reference or not.
+        /// </param>
+        /// <returns>The output value.</returns>
+        public static string AsString(this object obj, bool dbNullAsNull = true)
+        {
+            if (obj is string)
+            {
+                return (string)obj;
+            }
+
+            if (dbNullAsNull)
+            {
+                if (DBNull.Value.Equals(dbNullAsNull))
+                {
+                    obj = null;
+                }
+            }
+
+            if (obj == null)
+            {
+                return null;
+            }
+
+            if (obj is IEnumerable<char>)
+            {
+                return new string(AsArray(obj as IEnumerable<char>));
+            }
+
+            return obj.ToString();
+        }
 
         /// <summary>
-        /// Returns the parameters.
+        /// Checks if an object is <see langword="null" /> or <see cref="DBNull" />.
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        /// <typeparam name="TClass">Type of the object.</typeparam>
+        /// <param name="obj">The object to check.</param>
+        /// <returns>Is <see langword="null" /> or <see cref="DBNull"/>; otherwise <see langword="false" /></returns>
+        public static bool IsNull<TClass>(this TClass obj)
+             where TClass : class
+        {
+            return (null == obj) ||
+                   DBNull.Value.Equals(obj);
+        }
 
-        #endregion Method (3)
+        /// <summary>
+        /// Checks if a value is <see langword="null" />.
+        /// </summary>
+        /// <typeparam name="TValue">Type of the value.</typeparam>
+        /// <param name="value">The value to check.</param>
+        /// <returns>Is <see langword="null" /> or not.</returns>
+        public static bool IsNull<TValue>(this Nullable<TValue> value)
+            where TValue : struct
+        {
+            return !value.HasValue;
+        }
+
+        /// <summary>
+        /// Checks if a nullable <see cref="bool" /> has the value <see langword="true" />.
+        /// </summary>
+        /// <param name="value">The value to check.</param>
+        /// <returns>
+        /// <paramref name="value" /> is <see langword="true" /> or not.
+        /// </returns>
+        public static bool IsTrue(this bool? value)
+        {
+            return true == value;
+        }
+
+        #endregion Methods (5)
     }
 }

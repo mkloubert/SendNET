@@ -27,38 +27,73 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.SendNET.ComponentModel;
+using MarcelJoachimKloubert.SendNET.Protocol;
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Server
 {
-    /// <summary>
-    /// Describes an object that encrypt / decrypts data.
-    /// </summary>
-    public interface ICrypter
+    partial class ServerHost
     {
-        #region Method (3)
-
         /// <summary>
-        /// Decrypts data.
+        /// A basic record handler for a <see cref="ServerHost" /> instance.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <typeparam name="TRecord">Type of the underlying record.</typeparam>
+        protected abstract class ServerRecordHandlerBase<TRecord> : RecordHandlerBase<TRecord>
+            where TRecord : IRecord
+        {
+            #region Constructors (1)
 
-        /// <summary>
-        /// Encrypts data.
-        /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ServerRecordHandlerBase{TRecord}" /> class.
+            /// </summary>
+            /// <param name="conn">The value for the <see cref="ServerRecordHandlerBase{TRecord}.ClientConnection" /> property.</param>
+            /// <param name="record">The value for the <see cref="RecordHandlerBase{TRecord}.Record" /> property.</param>
+            /// <param name="sync">The value for the <see cref="NotifiableBase.SyncRoot" /> property.</param>
+            /// <exception cref="ArgumentNullException">
+            /// <paramref name="record" /> is <see langword="null" />.
+            /// </exception>
+            /// <exception cref="NullReferenceException">
+            /// <paramref name="conn" /> is <see langword="null" />.
+            /// </exception>
+            protected ServerRecordHandlerBase(ConnectionWithClient conn, TRecord record, object sync = null)
+                : base(appContext: conn.Host.Application,
+                       record: record,
+                       sync: sync)
+            {
+                this.ClientConnection = conn;
+            }
 
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+            #endregion Constructors (1)
 
-        #endregion Method (3)
+            #region Properties (3)
+
+            /// <summary>
+            /// Gets the underlying client connection.
+            /// </summary>
+            public ConnectionWithClient ClientConnection
+            {
+                get;
+                private set;
+            }
+
+            /// <summary>
+            /// Gets the underlying remote connection.
+            /// </summary>
+            public IClientConnection Connection
+            {
+                get { return this.ClientConnection; }
+            }
+
+            /// <summary>
+            /// Gets the underlying host.
+            /// </summary>
+            public ServerHost Host
+            {
+                get { return this.ClientConnection.Host; }
+            }
+
+            #endregion Properties (3)
+        }
     }
 }

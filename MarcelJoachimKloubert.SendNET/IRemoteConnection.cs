@@ -28,37 +28,49 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Describes a remote connection.
     /// </summary>
-    public interface ICrypter
+    public interface IRemoteConnection : IDisposable
     {
-        #region Method (3)
+        #region Properties (4)
 
         /// <summary>
-        /// Decrypts data.
+        /// Gets the address.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        EndPoint Address { get; }
 
         /// <summary>
-        /// Encrypts data.
+        /// Gets the underlying socket.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        Socket Socket { get; }
 
         /// <summary>
-        /// Returns the parameters.
+        /// Gets the connection stream.
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        NetworkStream Stream { get; }
 
-        #endregion Method (3)
+        #endregion Properties (4)
+
+        #region Methods (2)
+
+        /// <summary>
+        /// Closes the connection.
+        /// </summary>
+        void Close();
+
+        /// <summary>
+        /// Checks if that connection is valid.
+        /// </summary>
+        /// <param name="validator">The validator to use.</param>
+        /// <returns>Is valid or not.</returns>
+        bool IsValid(ConnectionValidator validator);
+
+        #endregion Methods (2)
     }
 }

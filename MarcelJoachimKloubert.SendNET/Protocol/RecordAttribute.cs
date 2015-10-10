@@ -28,37 +28,47 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Protocol
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Marks a type as known record.
     /// </summary>
-    public interface ICrypter
+    [AttributeUsage(AttributeTargets.Class |
+                    AttributeTargets.Struct, AllowMultiple = false)]
+    public class RecordAttribute : Attribute
     {
-        #region Method (3)
+        #region Constructors (2)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="RecordAttribute" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        public RecordAttribute()
+        {
+        }
 
         /// <summary>
-        /// Encrypts data.
+        /// Initializes a new instance of the <see cref="RecordAttribute" /> class.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        /// <param name="recordType">The value for the <see cref="RecordAttribute.Type" /> property.</param>
+        public RecordAttribute(RecordType recordType)
+        {
+            this.Type = recordType;
+        }
+
+        #endregion Constructors (2)
+
+        #region Properties (1)
 
         /// <summary>
-        /// Returns the parameters.
+        /// Gets or sets the type.
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        public RecordType Type
+        {
+            get;
+            set;
+        }
 
-        #endregion Method (3)
+        #endregion Properties (1)
     }
 }

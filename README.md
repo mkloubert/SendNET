@@ -1,2 +1,3 @@
-# SendNET
-Console application that sends or receives files via WCF.
+# Send.NET
+
+Class library for sending or receiving files via a crypted TCP/IP connection.

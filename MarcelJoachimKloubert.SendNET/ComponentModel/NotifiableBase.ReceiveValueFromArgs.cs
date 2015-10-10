@@ -28,37 +28,91 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
+using System.Reflection;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.ComponentModel
 {
-    /// <summary>
-    /// Describes an object that encrypt / decrypts data.
-    /// </summary>
-    public interface ICrypter
+    partial class NotifiableBase
     {
-        #region Method (3)
+        private class ReceiveValueFromArgs : IReceiveValueFromArgs
+        {
+            #region Constructor (1)
 
-        /// <summary>
-        /// Decrypts data.
-        /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+            internal ReceiveValueFromArgs(NotifiableBase sender)
+            {
+                this.Sender = sender;
+            }
 
-        /// <summary>
-        /// Encrypts data.
-        /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+            #endregion Constructor (1)
 
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+            #region Properties (8)
 
-        #endregion Method (3)
+            public object NewValue
+            {
+                get;
+                internal set;
+            }
+
+            public object OldValue
+            {
+                get;
+                internal set;
+            }
+
+            public NotifiableBase Sender
+            {
+                get;
+                private set;
+            }
+
+            object IReceiveValueFromArgs.Sender
+            {
+                get { return this.Sender; }
+            }
+
+            public string SenderName
+            {
+                get;
+                internal set;
+            }
+
+            public MemberTypes SenderType
+            {
+                get;
+                internal set;
+            }
+
+            int IReceiveValueFromArgs.SenderType
+            {
+                get { return (int)this.SenderType; }
+            }
+
+            public Type TargetType
+            {
+                get;
+                internal set;
+            }
+
+            #endregion Properties (8)
+
+            #region Methods (3)
+
+            public TTarget GetNewValue<TTarget>()
+            {
+                return this.Sender.ConvertTo<TTarget>(this.NewValue);
+            }
+
+            public TTarget GetOldValue<TTarget>()
+            {
+                return this.Sender.ConvertTo<TTarget>(this.OldValue);
+            }
+
+            public TTarget GetSender<TTarget>()
+            {
+                return this.Sender.ConvertTo<TTarget>(this.Sender);
+            }
+
+            #endregion Methods (3)
+        }
     }
 }

@@ -28,37 +28,73 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.Security;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// An application exception.
     /// </summary>
-    public interface ICrypter
+    public class ApplicationException : Exception
     {
-        #region Method (3)
+        #region Constructors (4)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="ApplicationException" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="code">The value for the <see cref="ApplicationException.Code" /> property.</param>
+        public ApplicationException(int code = 0)
+            : base()
+        {
+            this.Code = code;
+        }
 
         /// <summary>
-        /// Encrypts data.
+        /// Initializes a new instance of the <see cref="ApplicationException" /> class.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        /// <param name="message">The value for the <see cref="Exception.Message" /> property.</param>
+        /// <param name="code">The value for the <see cref="ApplicationException.Code" /> property.</param>
+        public ApplicationException(string message, int code = 0)
+            : base(message)
+        {
+            this.Code = code;
+        }
 
         /// <summary>
-        /// Returns the parameters.
+        /// <see cref="Exception.Exception(SerializationInfo, StreamingContext)" />
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        [SecuritySafeCritical]
+        protected ApplicationException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
 
-        #endregion Method (3)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApplicationException" /> class.
+        /// </summary>
+        /// <param name="message">The value for the <see cref="Exception.Message" /> property.</param>
+        /// <param name="innerException">The value for the <see cref="Exception.InnerException" /> property.</param>
+        /// <param name="code">The value for the <see cref="ApplicationException.Code" /> property.</param>
+        public ApplicationException(string message, Exception innerException, int code = 0)
+            : base(message, innerException)
+        {
+            this.Code = code;
+        }
+
+        #endregion Constructors (4)
+
+        #region Properties (1)
+
+        /// <summary>
+        /// Gets the error code.
+        /// </summary>
+        public int Code
+        {
+            get;
+            private set;
+        }
+
+        #endregion Properties (1)
     }
 }

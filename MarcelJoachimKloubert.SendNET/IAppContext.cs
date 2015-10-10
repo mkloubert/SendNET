@@ -27,38 +27,20 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
-
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Describes an application context.
     /// </summary>
-    public interface ICrypter
+    public interface IAppContext
     {
-        #region Method (3)
+        #region Properties (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Gets the underlying settings.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        IAppSettings Settings { get; }
 
-        /// <summary>
-        /// Encrypts data.
-        /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
-
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
-
-        #endregion Method (3)
+        #endregion Properties (1)
     }
 }

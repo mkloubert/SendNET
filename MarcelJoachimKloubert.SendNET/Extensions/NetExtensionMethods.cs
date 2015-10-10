@@ -28,37 +28,96 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET.Extensions
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Extension methods for network operations.
     /// </summary>
-    public interface ICrypter
+    static partial class SendNETExtensionMethods
     {
-        #region Method (3)
+        #region Methods (3)
 
         /// <summary>
-        /// Decrypts data.
+        /// Waits for data and reads them.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="stream">The underyling stream.</param>
+        /// <param name="size">The expected size in bytes.</param>
+        /// <returns>The read data.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="stream" /> is <see langword="null" />.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="size" /> is less than 0.
+        /// </exception>
+        public static byte[] WaitAndRead(this NetworkStream stream, int size)
+        {
+            if (size < 0)
+            {
+                throw new ArgumentOutOfRangeException("expectedSize", size,
+                                                      "Is less than 0!");
+            }
+
+            var result = new byte[size];
+            var bytesRead = WaitForData(stream).Read(result, 0, result.Length);
+
+            if (bytesRead != result.Length)
+            {
+                result = AsArray(result.Take(bytesRead));
+            }
+
+            return result;
+        }
 
         /// <summary>
-        /// Encrypts data.
+        /// Waits for data and reads a byte.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        /// <param name="stream">The underyling stream.</param>
+        /// <returns>The read byte or <see langword="null" /> if no data is available.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="stream" /> is <see langword="null" />.
+        /// </exception>
+        public static byte? WaitAndReadByte(this NetworkStream stream)
+        {
+            var result = WaitForData(stream).ReadByte();
+
+            return result >= 0 ? (byte)result : (byte?)null;
+        }
 
         /// <summary>
-        /// Returns the parameters.
+        /// Waits for data.
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        /// <param name="stream">The underyling stream.</param>
+        /// <param name="predicate">
+        /// An optional predicate that returns <see langword="true" /> for continue waiting; otherwise <see langword="false" />.
+        /// </param>
+        /// <returns>The instance of <paramref name="stream" />.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="stream" /> is <see langword="null" />.
+        /// </exception>
+        public static TStream WaitForData<TStream>(this TStream stream, Func<TStream, bool> predicate = null)
+            where TStream : global::System.Net.Sockets.NetworkStream
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException("stream");
+            }
 
-        #endregion Method (3)
+            predicate = predicate ?? new Func<TStream, bool>((ns) => true);
+
+            while (!stream.DataAvailable)
+            {
+                if (!predicate(stream))
+                {
+                    break;
+                }
+            }
+
+            return stream;
+        }
+
+        #endregion Methods (3)
     }
 }

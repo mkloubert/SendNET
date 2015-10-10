@@ -28,37 +28,46 @@
  **********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Arguments for an event for a remote connection.
     /// </summary>
-    public interface ICrypter
+    public class ConnectionEventArgs : EventArgs
     {
-        #region Method (3)
+        #region Constructors (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="ConnectionEventArgs" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="conn">The value for the <see cref="ConnectionEventArgs.Connection" /> property.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="conn" /> is <see langword="null" />.
+        /// </exception>
+        public ConnectionEventArgs(IRemoteConnection conn)
+        {
+            if (conn == null)
+            {
+                throw new ArgumentNullException("conn");
+            }
+
+            this.Connection = conn;
+        }
+
+        #endregion Constructors (1)
+
+        #region Properties (1)
 
         /// <summary>
-        /// Encrypts data.
+        /// Gets the underlying connection.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        public IRemoteConnection Connection
+        {
+            get;
+            private set;
+        }
 
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
-
-        #endregion Method (3)
+        #endregion Properties (1)
     }
 }

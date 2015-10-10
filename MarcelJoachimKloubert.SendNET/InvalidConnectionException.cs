@@ -27,38 +27,39 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
-
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// Raised if a remote connection is invalid / not allowed.
     /// </summary>
-    public interface ICrypter
+    public class InvalidConnectionException : ApplicationException
     {
-        #region Method (3)
+        #region Constructors (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="InvalidConnectionException" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="connection">The value for the <see cref="InvalidConnectionException.Connection" /> property.</param>
+        /// <param name="code">The value for the <see cref="ApplicationException.Code" /> property.</param>
+        public InvalidConnectionException(IRemoteConnection connection, int code = 0)
+            : base(code: code)
+        {
+            this.Connection = connection;
+        }
+
+        #endregion Constructors (1)
+
+        #region Properties (1)
 
         /// <summary>
-        /// Encrypts data.
+        /// Gets the underlying connection.
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        public IRemoteConnection Connection
+        {
+            get;
+            private set;
+        }
 
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
-
-        #endregion Method (3)
+        #endregion Properties (1)
     }
 }

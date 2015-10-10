@@ -27,38 +27,40 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
+using MarcelJoachimKloubert.SendNET.ComponentModel;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// A simple application context.
     /// </summary>
-    public interface ICrypter
+    public class AppContext : NotifiableBase, IAppContext
     {
-        #region Method (3)
+        #region Constructors (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="AppContext" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="sync">The value for the <see cref="NotifiableBase.SyncRoot" /> property.</param>
+        public AppContext(object sync = null)
+            : base(sync: sync)
+        {
+        }
+
+        #endregion Constructors (1)
+
+        #region Properties (1)
 
         /// <summary>
-        /// Encrypts data.
+        /// <see cref="IAppContext.Settings" />
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        public IAppSettings Settings
+        {
+            get { return this.Get(() => this.Settings); }
 
-        /// <summary>
-        /// Returns the parameters.
-        /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+            set { this.Set(() => this.Settings, value); }
+        }
 
-        #endregion Method (3)
+        #endregion Properties (1)
     }
 }

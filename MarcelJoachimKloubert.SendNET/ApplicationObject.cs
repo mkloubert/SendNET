@@ -27,38 +27,58 @@
  *                                                                                                                    *
  **********************************************************************************************************************/
 
+using MarcelJoachimKloubert.SendNET.ComponentModel;
 using System;
-using System.Collections.Generic;
 
-namespace MarcelJoachimKloubert.SendNET.Cryptography
+namespace MarcelJoachimKloubert.SendNET
 {
     /// <summary>
-    /// Describes an object that encrypt / decrypts data.
+    /// An application object.
     /// </summary>
-    public interface ICrypter
+    public class ApplicationObject : NotifiableBase
     {
-        #region Method (3)
+        #region Constructors (1)
 
         /// <summary>
-        /// Decrypts data.
+        /// Initializes a new instance of the <see cref="ApplicationObject" /> class.
         /// </summary>
-        /// <param name="crypted">The crypted data.</param>
-        /// <returns>The decrypted data.</returns>
-        byte[] Decrypt(IEnumerable<byte> crypted);
+        /// <param name="appContext">The value for the <see cref="ApplicationObject.Application" /> property.</param>
+        /// <param name="sync">The value for the <see cref="NotifiableBase.SyncRoot" /> property.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="appContext" /> is <see langword="null" />.
+        /// </exception>
+        public ApplicationObject(IAppContext appContext, object sync = null)
+            : base(sync: sync)
+        {
+            if (appContext == null)
+            {
+                throw new ArgumentNullException("appContext");
+            }
+
+            this.Application = appContext;
+        }
+
+        #endregion Constructors (1)
+
+        #region Properties (2)
 
         /// <summary>
-        /// Encrypts data.
+        /// Gets the underlying application (context).
         /// </summary>
-        /// <param name="uncrypted">The uncrypted data.</param>
-        /// <returns>The crypted data.</returns>
-        byte[] Encrypt(IEnumerable<byte> uncrypted);
+        public IAppContext Application
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
-        /// Returns the parameters.
+        /// Gets the settings of <see cref="ApplicationObject.Application" />.
         /// </summary>
-        /// <returns>The parameters.</returns>
-        byte[] ExportParameters();
+        public IAppSettings Settings
+        {
+            get { return this.Application.Settings; }
+        }
 
-        #endregion Method (3)
+        #endregion Properties (2)
     }
 }
